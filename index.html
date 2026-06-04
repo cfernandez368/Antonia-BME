@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Antonia's BME Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#faf7f2;--cream2:#f3ede3;--cream3:#e8dfd0;
+  --blue:#1a5fa8;--blue-dark:#0f3d6e;--blue-light:#e8f0fa;--blue-mid:#3b7dd8;
+  --green:#1a7a52;--green-light:#dcf5eb;--green-dark:#0d4d33;
+  --red:#c0392b;--red-light:#fdecea;--red-dark:#7b1c14;
+  --amber:#b45309;--amber-light:#fef3c7;--amber-dark:#713207;
+  --ink:#1c1917;--ink2:#44403c;--ink3:#78716c;--ink4:#a8a29e;
+  --border:#e2d9cc;--white:#fff;
+  --r:12px;--r-sm:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:var(--ink);-webkit-font-smoothing:antialiased;font-size:14px;}
+.app{max-width:430px;margin:0 auto;min-height:100vh;}
+.sticky{position:sticky;top:0;z-index:20;}
+.hdr{background:var(--blue-dark);padding:1rem 1.1rem .9rem;position:relative;overflow:hidden;}
+.hdr::before{content:'';position:absolute;top:-40px;right:-40px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.05);}
+.hdr-eyebrow{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:3px;}
+.hdr h1{font-family:'DM Serif Display',serif;font-size:22px;color:#fff;line-height:1.2;}
+.hdr-sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:3px;}
+.hdr-pills{display:flex;gap:8px;margin-top:.65rem;flex-wrap:wrap;}
+.hdr-pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:3px 10px;font-size:11px;color:rgba(255,255,255,.75);}
+.hdr-pill strong{color:#fff;font-weight:700;}
+.tabs{display:flex;background:var(--blue-dark);border-bottom:2px solid var(--cream3);}
+.tab{flex:1;padding:9px 4px 7px;font-size:12px;font-weight:500;text-align:center;cursor:pointer;color:rgba(255,255,255,.4);border-bottom:2px solid transparent;margin-bottom:-2px;}
+.tab.active{color:#fff;border-bottom-color:#6fb3ff;}
+.view{display:none;padding:.9rem 1rem 5rem;}
+.view.active{display:block;}
+.sec-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink4);margin:1rem 0 .4rem;padding-left:2px;}
+.sec-label:first-child{margin-top:0;}
+
+/* ALERTS */
+.alert{border-radius:10px;padding:9px 12px;font-size:12px;margin-bottom:.6rem;line-height:1.55;border-left:3px solid;display:flex;gap:8px;align-items:flex-start;}
+.alert.good{background:var(--green-light);border-color:var(--green);color:var(--green-dark);}
+.alert.bad{background:var(--red-light);border-color:var(--red);color:var(--red-dark);}
+.alert.info{background:var(--amber-light);border-color:var(--amber);color:var(--amber-dark);}
+.alert.blue{background:var(--blue-light);border-color:var(--blue);color:#1e3a6e;}
+
+/* SEM GROUPS */
+.sem-group{margin-bottom:.5rem;}
+.sem-header{display:flex;align-items:center;justify-content:space-between;padding:.5rem .75rem;background:var(--cream2);border-radius:var(--r) var(--r) 0 0;border:1px solid var(--border);border-bottom:none;}
+.sem-title{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--ink2);text-transform:uppercase;letter-spacing:.05em;}
+.sem-dot{width:8px;height:8px;border-radius:50%;}
+.d-done{background:var(--green);}.d-fall{background:#c0392b;}.d-spring{background:var(--blue);}.d-tbd{background:var(--amber);}
+.cred-chip{font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;}
+.chip-ok{background:var(--green-light);color:var(--green-dark);}
+.chip-warn{background:var(--red-light);color:var(--red-dark);}
+.chip-amber{background:var(--amber-light);color:var(--amber-dark);}
+.chip-neutral{background:var(--cream3);color:var(--ink3);}
+.course-list{border:1px solid var(--border);border-radius:0 0 var(--r) var(--r);background:var(--white);overflow:hidden;}
+.course-item{border-bottom:1px solid var(--border);}
+.course-item:last-child{border-bottom:none;}
+.course-main{display:flex;align-items:center;gap:10px;padding:11px 13px;cursor:pointer;transition:background .1s;}
+.course-main:active{background:var(--cream);}
+.cb{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.cb.checked{background:var(--green);border-color:var(--green);}
+.cb.checked::after{content:'';display:block;width:5px;height:9px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px);}
+.cb.locked{background:var(--green-light);border-color:var(--green);}
+.cb.locked::after{content:'';display:block;width:5px;height:9px;border:2px solid var(--green);border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px);}
+.course-info{flex:1;min-width:0;}
+.course-name{font-size:14px;font-weight:600;color:var(--ink);}
+.course-name.done-text{color:var(--ink3);text-decoration:line-through;text-decoration-color:var(--ink4);}
+.course-full{font-size:12px;color:var(--ink3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.course-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.cr-badge{font-size:11px;font-weight:600;color:var(--ink3);}
+.expand-btn{font-size:11px;color:var(--blue-mid);font-weight:500;}
+.course-expanded{display:none;padding:0 13px 13px 45px;background:var(--cream);}
+.course-expanded.open{display:block;}
+.tag-row{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;}
+.tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;}
+.tag-req{background:#fee2e2;color:#991b1b;}
+.tag-trans{background:var(--blue-light);color:#1e4a8a;}
+.tag-gt{background:#ede9fe;color:#4c1d95;}
+.tag-warn{background:var(--amber-light);color:var(--amber-dark);}
+.tag-done{background:var(--green-light);color:var(--green-dark);}
+.move-row{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
+.move-chip{font-size:11px;font-weight:600;padding:5px 10px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:var(--white);cursor:pointer;color:var(--ink2);display:flex;align-items:center;gap:5px;transition:background .1s;}
+.move-chip:active{background:var(--cream2);}
+.move-chip.active-sem{border-color:var(--blue);color:var(--blue);background:var(--blue-light);}
+.notes-label{font-size:11px;font-weight:600;color:var(--ink3);margin-bottom:4px;}
+.notes-input{width:100%;border:1.5px solid var(--border);border-radius:var(--r-sm);padding:8px 10px;font-size:13px;font-family:inherit;background:var(--white);color:var(--ink);resize:none;min-height:60px;outline:none;}
+.notes-input:focus{border-color:var(--blue-mid);}
+.empty{padding:12px 13px;font-size:12px;color:var(--ink4);font-style:italic;}
+
+/* GT REQUIREMENTS */
+.req-section{margin-bottom:1rem;}
+.req-section-title{font-size:13px;font-weight:700;color:var(--blue-dark);padding:.6rem .75rem;background:var(--blue-light);border-radius:var(--r) var(--r) 0 0;border:1px solid #c5d8f0;border-bottom:none;display:flex;align-items:center;justify-content:space-between;}
+.req-table{border:1px solid var(--border);border-radius:0 0 var(--r) var(--r);background:var(--white);overflow:hidden;}
+.req-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;padding:9px 12px;border-bottom:1px solid var(--border);align-items:start;}
+.req-row:last-child{border-bottom:none;}
+.req-row.header-row{background:var(--cream2);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);align-items:center;}
+.req-gt{font-size:12px;font-weight:600;color:var(--ink);}
+.req-gt-sub{font-size:10px;color:var(--ink3);margin-top:1px;}
+.req-fulfil{font-size:11px;color:var(--ink2);}
+.req-fulfil-sub{font-size:10px;color:var(--ink4);margin-top:1px;}
+.status-pill{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap;text-align:center;}
+.s-done{background:var(--green-light);color:var(--green-dark);}
+.s-planned{background:var(--blue-light);color:#1e4a8a;}
+.s-missing{background:var(--red-light);color:var(--red-dark);}
+.s-partial{background:var(--amber-light);color:var(--amber-dark);}
+.s-gt{background:#ede9fe;color:#4c1d95;}
+
+/* OPTIONS ACCORDION */
+.options-toggle{font-size:11px;font-weight:600;color:var(--blue-mid);cursor:pointer;padding:6px 12px;border-top:1px solid var(--border);background:var(--cream);display:flex;align-items:center;gap:4px;}
+.options-toggle:active{background:var(--cream2);}
+.options-list{display:none;padding:8px 12px;border-top:1px solid var(--border);background:var(--cream);}
+.options-list.open{display:block;}
+.options-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink4);margin-bottom:6px;}
+.opt-item{font-size:11px;color:var(--ink2);padding:4px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.opt-item:last-child{border-bottom:none;}
+.opt-code{font-weight:600;color:var(--ink);min-width:80px;}
+.opt-cr{font-size:10px;color:var(--ink4);flex-shrink:0;}
+
+/* LINKS */
+.link-card{border:1px solid var(--border);border-radius:var(--r);background:var(--white);overflow:hidden;margin-bottom:.75rem;}
+.link-row{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+.link-row:last-child{border-bottom:none;}
+.link-row:active{background:var(--cream);}
+.link-name{font-size:13px;font-weight:600;color:var(--ink);}
+.link-sub{font-size:11px;color:var(--ink3);margin-top:1px;}
+.link-arr{margin-left:auto;color:var(--blue-mid);font-size:15px;flex-shrink:0;}
+
+/* SUMMARY */
+.summary-row{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);font-size:13px;}
+.summary-row:last-child{border-bottom:none;}
+.sum-lbl{color:var(--ink2);}
+.sum-val{font-weight:600;}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="sticky">
+  <div class="hdr">
+    <div class="hdr-eyebrow">Antonia's Transfer Roadmap</div>
+    <h1>Hey Antonia! 👋</h1>
+    <div class="hdr-sub">Oglethorpe University → Georgia Tech BME</div>
+    <div class="hdr-pills" id="hdr-pills"></div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('checklist')">Checklist</div>
+    <div class="tab" onclick="showTab('requirements')">GT Requirements</div>
+    <div class="tab" onclick="showTab('links')">Links</div>
+  </div>
+</div>
+
+<div class="view active" id="view-checklist">
+  <div id="alerts"></div>
+  <div id="checklist"></div>
+</div>
+
+<div class="view" id="view-requirements">
+  <div class="alert blue"><span>📋</span><span>All GT BME core requirements mapped. Tap <strong>"See options"</strong> on any pending row to see courses you can take at Oglethorpe to fulfill it.</span></div>
+  <div id="req-content"></div>
+</div>
+
+<div class="view" id="view-links">
+  <div class="sec-label">Quick links</div>
+  <div class="link-card">
+    <div class="link-row" onclick="window.open('https://oscar.gatech.edu/pls/bprod/wwtraneq.P_TranEq_Ltr')"><div><div class="link-name">GT Transfer Equivalency (OSCAR)</div><div class="link-sub">How Oglethorpe courses count at GT</div></div><span class="link-arr">→</span></div>
+    <div class="link-row" onclick="window.open('https://catalog.gatech.edu/programs/biomedical-engineering-bs/#requirementstext')"><div><div class="link-name">GT BME Degree Requirements</div><div class="link-sub">Full 128-credit degree plan</div></div><span class="link-arr">→</span></div>
+    <div class="link-row" onclick="window.open('https://admission.gatech.edu/transfer/course-requirements-major')"><div><div class="link-name">GT Transfer Requirements by Major</div><div class="link-sub">What you must complete before applying</div></div><span class="link-arr">→</span></div>
+    <div class="link-row" onclick="window.open('https://catalog.gatech.edu/academics/undergraduate/core-curriculum/humanities/')"><div><div class="link-name">GT Humanities Course List</div><div class="link-sub">Full list of HUM-attribute courses</div></div><span class="link-arr">→</span></div>
+    <div class="link-row" onclick="window.open('https://catalog.gatech.edu/academics/undergraduate/core-curriculum/social-sciences/')"><div><div class="link-name">GT Social Sciences Course List</div><div class="link-sub">Full list of SS-attribute courses</div></div><span class="link-arr">→</span></div>
+    <div class="link-row" onclick="window.open('https://admission.gatech.edu/transfer/application-requirements')"><div><div class="link-name">GT Transfer Application Requirements</div><div class="link-sub">30-credit rule, deadlines, full policy</div></div><span class="link-arr">→</span></div>
+    <div class="link-row" onclick="window.open('https://oglethorpe.edu/academics/the-core/core-course-equivalencies/')"><div><div class="link-name">Oglethorpe Core Equivalencies</div><div class="link-sub">How prior credits apply at OGU</div></div><span class="link-arr">→</span></div>
+  </div>
+  <div class="sec-label">Questions for your advisor at orientation</div>
+  <div class="link-card">
+    <div class="link-row" style="cursor:default;"><div><div class="link-name">Does MAT 131 → GT MATH 1551?</div><div class="link-sub">Differential Calculus — required for BME transfer admission</div></div></div>
+    <div class="link-row" style="cursor:default;"><div><div class="link-name">Does PHY 201 + 201L → GT PHYS 2211?</div><div class="link-sub">Physics I — required for BME transfer admission</div></div></div>
+    <div class="link-row" style="cursor:default;"><div><div class="link-name">Does CHM 101 + 101L → GT CHEM 1211K?</div><div class="link-sub">Chemistry I — required for BME</div></div></div>
+    <div class="link-row" style="cursor:default;"><div><div class="link-name">Does PHY 211 → GT COE 2001 (Statics)?</div><div class="link-sub">Recommended for Spring — hard class</div></div></div>
+    <div class="link-row" style="cursor:default;"><div><div class="link-name">Which ART course fulfills GT Humanities?</div><div class="link-sub">Need 1 ART elective (3 cr) — SPAN 1002 covers the other 3 cr</div></div></div>
+    <div class="link-row" style="cursor:default;"><div><div class="link-name">Will I hit 30 NEW credits by May 2027?</div><div class="link-sub">AP + GGC dual enrollment don't count toward this minimum</div></div></div>
+    <div class="link-row" style="cursor:default;"><div><div class="link-name">Do my GGC courses transfer to Oglethorpe?</div><div class="link-sub">ENGL 1101/02, HIST 2111, POL 1101, SOC 1101, SPAN 1001/02</div></div></div>
+  </div>
+</div>
+</div>
+
+<script>
+const SKEY='antonia-v6';
+
+const COURSES=[
+  // DONE - GGC
+  {id:'engl1101',name:'ENGL 1101',full:'English Composition I',cr:3,sem:'done',locked:true,src:'GGC',gtEq:'GT ENGL 1101',gtReqT:true},
+  {id:'engl1102',name:'ENGL 1102',full:'English Composition II',cr:3,sem:'done',locked:true,src:'GGC',gtEq:'GT ENGL 1102',gtReqT:true},
+  {id:'hist2111',name:'HIST 2111',full:'US History to 1877',cr:3,sem:'done',locked:true,src:'GGC',gtEq:'GT Pol Sci & US History req'},
+  {id:'pol1101',name:'POL 1101',full:'US Government',cr:3,sem:'done',locked:true,src:'GGC',gtEq:'GT Social Sciences (counts here only)'},
+  {id:'soc1101',name:'SOC 1101',full:'Intro Sociology',cr:3,sem:'done',locked:true,src:'GGC',gtEq:'GT Social Sciences (9 cr req — DONE)'},
+  {id:'span1001',name:'SPAN 1001',full:'Spanish I',cr:3,sem:'done',locked:true,src:'GGC',gtEq:'GT free elective'},
+  {id:'span1002',name:'SPAN 1002',full:'Spanish II',cr:3,sem:'done',locked:true,src:'GGC',gtEq:'GT Humanities — 3 of 6 cr ✓'},
+  {id:'psyc1101',name:'PSYC 1101',full:'Intro Psychology',cr:3,sem:'done',locked:true,src:'AP',gtEq:'GT Social Sciences (9 cr req — DONE)',noCount:true,warn:"AP — doesn't count toward 30-cr minimum"},
+  // FALL
+  {id:'mat131',name:'MAT 131',full:'Calculus I',cr:4,sem:'fall',gtEq:'→ GT MATH 1551',gtReqT:true},
+  {id:'phy201',name:'PHY 201',full:'Physics I',cr:4,sem:'fall',gtEq:'→ GT PHYS 2211',gtReqT:true},
+  {id:'phy201l',name:'PHY 201L',full:'Physics I Lab',cr:1,sem:'fall',gtEq:'→ Part of GT PHYS 2211K',gtReqT:true},
+  // SPRING
+  {id:'mat132',name:'MAT 132',full:'Calculus II',cr:4,sem:'spring',gtEq:'→ GT MATH 1552',gtReqT:true},
+  {id:'chm101',name:'CHM 101',full:'Chemistry I',cr:4,sem:'spring',gtEq:'→ GT CHEM 1211K',gtReqT:true},
+  {id:'chm101l',name:'CHM 101L',full:'Chemistry I Lab',cr:1,sem:'spring',gtEq:'→ Part of GT CHEM 1211K',gtReqT:true},
+  // TBD
+  {id:'phy211',name:'PHY 211',full:'Statics',cr:4,sem:'tbd',gtEq:'→ GT COE 2001',warn:'Hard class — recommended for Spring'},
+  {id:'art_elective',name:'ART Elective',full:'1 art course — pick with advisor',cr:3,sem:'tbd',gtEq:'→ Completes GT Humanities req (6 cr)',warn:'SPAN 1002 covers 3 cr, this covers final 3 cr'},
+  {id:'open1',name:'Elective A',full:'To choose with advisor',cr:3,sem:'tbd',gtEq:'GT elective',warn:'Needed to reach 12 cr/sem and 30 cr total'},
+  {id:'open2',name:'Elective B',full:'To choose with advisor',cr:3,sem:'tbd',gtEq:'GT elective',warn:'Needed to reach 12 cr/sem and 30 cr total'},
+];
+
+// GT Core Requirements with options for pending ones
+const GT_REQS=[
+  {
+    section:'Writing',
+    icon:'✍️',
+    rows:[
+      {gt:'ENGL 1101',gtFull:'English Composition I',cr:3,fulfil:'ENGL 1101 (GGC)',fulfSub:'3 cr — done',status:'done'},
+      {gt:'ENGL 1102',gtFull:'English Composition II',cr:3,fulfil:'ENGL 1102 (GGC)',fulfSub:'3 cr — done',status:'done'},
+    ]
+  },
+  {
+    section:'Political Science & US History',
+    icon:'🏛️',
+    note:'One course required. Fulfilled by HIST 2111 ✓ — POL 1101 counted toward Social Sciences only.',
+    rows:[
+      {gt:'US History or Pol Sci',gtFull:'Survey of US History I',cr:3,fulfil:'HIST 2111 (GGC)',fulfSub:'3 cr — done ✓',status:'done'},
+    ]
+  },
+  {
+    section:'Social Sciences — 9 cr needed',
+    icon:'🧠',
+    note:'9 of 9 credits done — fully complete! ✓',
+    rows:[
+      {gt:'SS — 3 cr',gtFull:'Government of the United States',cr:3,fulfil:'POL 1101 (GGC)',fulfSub:'3 cr — done ✓',status:'done'},
+      {gt:'SS — 3 cr',gtFull:'Introduction to General Psychology',cr:3,fulfil:'PSYC 1101 (AP)',fulfSub:'3 cr — done ✓',status:'done'},
+      {gt:'SS — 3 cr',gtFull:'Introduction to Sociology',cr:3,fulfil:'SOC 1101 (GGC)',fulfSub:'3 cr — done ✓',status:'done'},
+    ]
+  },
+  {
+    section:'Humanities & Arts — 6 cr needed',
+    icon:'🎨',
+    note:'3 cr done via SPAN 1002. Need 1 more ART course at Oglethorpe.',
+    rows:[
+      {gt:'HUM — 3 cr',gtFull:'Language course (introductory)',cr:3,fulfil:'SPAN 1002 (GGC)',fulfSub:'3 cr — done ✓',status:'done'},
+      {gt:'HUM — 3 cr',gtFull:'Arts/Humanities elective (non-language)',cr:3,fulfil:'ART elective at Oglethorpe (TBD)',fulfSub:'Pick 1 course — see options below',status:'partial',
+        options:[
+          {code:'ART 109',name:'Drawing I',cr:3},
+          {code:'ART 105',name:'Art Appreciation',cr:3},
+          {code:'Any HUM course',name:'Check Oglethorpe catalog — must carry GT HUM attribute',cr:3},
+        ]
+      },
+    ]
+  },
+  {
+    section:'Mathematics',
+    icon:'📐',
+    rows:[
+      {gt:'MATH 1551',gtFull:'Differential Calculus',cr:2,fulfil:'MAT 131 → OGU Fall',fulfSub:'4 cr transfers as MATH 1551',status:'planned'},
+      {gt:'MATH 1552',gtFull:'Integral Calculus',cr:4,fulfil:'MAT 132 → OGU Spring',fulfSub:'4 cr transfers as MATH 1552',status:'planned'},
+      {gt:'MATH 1553/1554',gtFull:'Linear Algebra',cr:2,fulfil:'Take at GT after transfer',fulfSub:'',status:'gt'},
+      {gt:'MATH 2551',gtFull:'Multivariable Calculus',cr:4,fulfil:'Take at GT after transfer',fulfSub:'',status:'gt'},
+      {gt:'MATH 2552',gtFull:'Differential Equations',cr:4,fulfil:'Take at GT after transfer',fulfSub:'',status:'gt'},
+    ]
+  },
+  {
+    section:'Physics & Chemistry',
+    icon:'⚗️',
+    rows:[
+      {gt:'PHYS 2211',gtFull:'Principles of Physics I',cr:4,fulfil:'PHY 201 + 201L → OGU Fall',fulfSub:'Transfers as PHYS 2211K',status:'planned'},
+      {gt:'PHYS 2212',gtFull:'Principles of Physics II',cr:4,fulfil:'Take at GT after transfer',fulfSub:'Not needed for transfer admission',status:'gt'},
+      {gt:'CHEM 1211K',gtFull:'Chemical Principles I',cr:4,fulfil:'CHM 101 + 101L → OGU Spring',fulfSub:'Transfers as CHEM 1211K',status:'planned'},
+      {gt:'CHEM 1315',gtFull:'Survey of Organic Chemistry',cr:3,fulfil:'Take at GT after transfer',fulfSub:'',status:'gt'},
+    ]
+  },
+  {
+    section:'Core Engineering',
+    icon:'⚙️',
+    rows:[
+      {gt:'CS 1371',gtFull:'Computing for Engineers',cr:3,fulfil:'Take at GT after transfer',fulfSub:'',status:'gt'},
+      {gt:'COE 2001',gtFull:'Statics',cr:2,fulfil:'PHY 211 → OGU (TBD)',fulfSub:'Transfers as COE 2001',status:'partial'},
+      {gt:'MSE 2001',gtFull:'Principles of Engineering Materials',cr:3,fulfil:'Take at GT after transfer',fulfSub:'',status:'gt'},
+      {gt:'ECE 3710',gtFull:'Circuits and Electronics',cr:2,fulfil:'Take at GT after transfer',fulfSub:'',status:'gt'},
+      {gt:'ECE 3741',gtFull:'Instrumentation & Electronics Lab',cr:1,fulfil:'Take at GT after transfer',fulfSub:'',status:'gt'},
+    ]
+  },
+  {
+    section:'BME Core Courses',
+    icon:'🔬',
+    rows:[
+      {gt:'BMED 1000',gtFull:'Intro to Biomedical Engineering',cr:1,fulfil:'Take at GT',fulfSub:'',status:'gt'},
+      {gt:'BMED 2110',gtFull:'Conservation Principles in BME',cr:3,fulfil:'Take at GT',fulfSub:'',status:'gt'},
+      {gt:'BMED 2250',gtFull:'Problems in BME',cr:3,fulfil:'Take at GT',fulfSub:'',status:'gt'},
+      {gt:'BMED 2310',gtFull:'Intro to BME Design',cr:3,fulfil:'Take at GT',fulfSub:'',status:'gt'},
+      {gt:'BMED 2400',gtFull:'Bioengineering Statistics',cr:3,fulfil:'Take at GT',fulfSub:'',status:'gt'},
+      {gt:'BMED 3100',gtFull:'Systems Physiology',cr:3,fulfil:'Take at GT',fulfSub:'',status:'gt'},
+      {gt:'BMED 3110',gtFull:'Quantitative Physiology Lab I',cr:2,fulfil:'Take at GT',fulfSub:'',status:'gt'},
+      {gt:'BMED 3310',gtFull:'Biotransport',cr:3,fulfil:'Take at GT',fulfSub:'',status:'gt'},
+      {gt:'BMED 3410',gtFull:'Intro to Biomechanics',cr:3,fulfil:'Take at GT',fulfSub:'',status:'gt'},
+      {gt:'BMED 3520',gtFull:'Biomedical Systems & Modeling',cr:3,fulfil:'Take at GT',fulfSub:'',status:'gt'},
+      {gt:'BMED 3600',gtFull:'Physiology: Cellular & Molecular',cr:3,fulfil:'Take at GT',fulfSub:'',status:'gt'},
+      {gt:'BMED 3610',gtFull:'Quantitative Physiology Lab II',cr:2,fulfil:'Take at GT',fulfSub:'',status:'gt'},
+      {gt:'BMED 4000',gtFull:'The Art of Telling Your Story',cr:1,fulfil:'Take at GT',fulfSub:'',status:'gt'},
+      {gt:'BMED 4602',gtFull:'Capstone Design',cr:3,fulfil:'Take at GT',fulfSub:'',status:'gt'},
+    ]
+  },
+  {
+    section:'Wellness & Electives',
+    icon:'💪',
+    rows:[
+      {gt:'APPH 1040/50/60',gtFull:'Wellness requirement',cr:2,fulfil:'Take at GT',fulfSub:'',status:'gt'},
+      {gt:'BMED Depth (9 cr)',gtFull:'3000+ level BME electives',cr:9,fulfil:'Choose specialty at GT',fulfSub:'',status:'gt'},
+      {gt:'BMED Breadth (15 cr)',gtFull:'Minor, certificate, or coursework',cr:15,fulfil:'Choose breadth at GT',fulfSub:'',status:'gt'},
+      {gt:'Free Electives',gtFull:'SPAN 1001/1002 transfer credits',cr:6,fulfil:'SPAN 1001 + SPAN 1002 (GGC)',fulfSub:'6 cr done ✓',status:'done'},
+    ]
+  },
+];
+
+// STATE
+let st={};
+try{const s=localStorage.getItem(SKEY);if(s)st=JSON.parse(s);}catch(e){}
+COURSES.forEach(c=>{if(st[c.id]===undefined)st[c.id]={sem:c.sem,checked:c.locked?true:false,note:''};});
+function save(){try{localStorage.setItem(SKEY,JSON.stringify(st));}catch(e){}}
+
+function newCr(sem){return COURSES.filter(c=>st[c.id].sem===sem&&!c.noCount).reduce((a,c)=>a+c.cr,0);}
+function credClass(cr){return cr>=12?'chip-ok':cr>=9?'chip-amber':'chip-warn';}
+
+function toggleExpand(id){
+  const el=document.getElementById('exp-'+id);
+  const btn=document.getElementById('expbtn-'+id);
+  if(!el)return;
+  const open=el.classList.toggle('open');
+  if(btn)btn.textContent=open?'▲ less':'▼ more';
+}
+function moveTo(id,sem){st[id].sem=sem;save();renderChecklist();renderHeader();}
+function saveNote(id,val){st[id].note=val;save();}
+function toggleCheck(id){
+  const c=COURSES.find(x=>x.id===id);
+  if(c&&c.locked)return;
+  st[id].checked=!st[id].checked;save();renderChecklist();renderHeader();
+}
+function toggleOptions(id){
+  const el=document.getElementById('opts-'+id);
+  const btn=document.getElementById('optsbtn-'+id);
+  if(!el)return;
+  const open=el.classList.toggle('open');
+  if(btn)btn.textContent=open?'▲ Hide options':'▼ See options →';
+}
+
+const SEM_META={
+  done:{lbl:'Already Complete',dot:'d-done',note:'GGC + AP credits  •  AP does NOT count toward the 30-credit minimum'},
+  fall:{lbl:'Fall Semester',dot:'d-fall',note:'Fall 2026 at Oglethorpe'},
+  spring:{lbl:'Spring Semester',dot:'d-spring',note:'Spring 2027 at Oglethorpe'},
+  tbd:{lbl:'TBD — Unscheduled',dot:'d-tbd',note:'Tap a course → expand → move it to a semester'},
+};
+
+function renderCourse(c){
+  const s=st[c.id];
+  const isDone=s.checked||c.locked;
+  const cbCls=c.locked?'locked':isDone?'checked':'';
+  let html='<div class="course-item" id="item-'+c.id+'">';
+  html+='<div class="course-main" onclick="toggleExpand(\''+c.id+'\')">'
+    +'<div class="cb '+cbCls+'" onclick="event.stopPropagation();toggleCheck(\''+c.id+'\')"></div>'
+    +'<div class="course-info">'
+    +'<div class="course-name'+(isDone?' done-text':'')+'">'+c.name+'</div>'
+    +'<div class="course-full">'+c.full+'</div>'
+    +'</div>'
+    +'<div class="course-right">'
+    +'<span class="cr-badge">'+c.cr+' cr</span>'
+    +'<span class="expand-btn" id="expbtn-'+c.id+'">▼ more</span>'
+    +'</div></div>';
+  html+='<div class="course-expanded" id="exp-'+c.id+'">';
+  html+='<div class="tag-row">';
+  if(c.gtReqT) html+='<span class="tag tag-req">Required for GT transfer</span>';
+  if(c.src) html+='<span class="tag tag-done">'+c.src+' ✓</span>';
+  html+='<span class="tag tag-gt">'+c.gtEq+'</span>';
+  if(c.warn) html+='<span class="tag tag-warn">'+c.warn+'</span>';
+  if(c.noCount) html+='<span class="tag tag-warn">Doesn\'t count toward 30-cr min</span>';
+  html+='</div>';
+  if(!c.locked){
+    html+='<div class="move-row">';
+    [{id:'fall',lbl:'🔴 Fall'},{id:'spring',lbl:'🔵 Spring'},{id:'tbd',lbl:'🟡 TBD'}].forEach(opt=>{
+      const active=s.sem===opt.id?' active-sem':'';
+      html+='<div class="move-chip'+active+'" onclick="moveTo(\''+c.id+'\',\''+opt.id+'\')">'+opt.lbl+'</div>';
+    });
+    html+='</div>';
+  }
+  html+='<div class="notes-label">📝 Notes from advisor</div>'
+    +'<textarea class="notes-input" placeholder="Tap to add notes..." oninput="saveNote(\''+c.id+'\',this.value)">'+escHtml(s.note||'')+'</textarea>';
+  html+='</div></div>';
+  return html;
+}
+
+function renderChecklist(){
+  const fallCr=newCr('fall'),springCr=newCr('spring');
+  const tbdCr=COURSES.filter(c=>st[c.id].sem==='tbd').reduce((a,c)=>a+c.cr,0);
+  const totalNew=fallCr+springCr+tbdCr;
+  let alerts='';
+  if(totalNew<30) alerts+='<div class="alert bad"><span>⚠️</span><span><strong>Only '+totalNew+' new credits planned</strong> — need 30 for GT transfer. Assign TBD courses or ask your advisor about more options.</span></div>';
+  else alerts+='<div class="alert good"><span>✅</span><span><strong>'+totalNew+' new Oglethorpe credits</strong> — meets the 30-credit GT transfer minimum!</span></div>';
+  if(fallCr<12) alerts+='<div class="alert bad"><span>⚠️</span><span><strong>Fall: only '+fallCr+' credits</strong> — need 12+ to be full-time at Oglethorpe.</span></div>';
+  if(springCr>0&&springCr<12) alerts+='<div class="alert bad"><span>⚠️</span><span><strong>Spring: only '+springCr+' credits</strong> — need 12+ to be full-time at Oglethorpe.</span></div>';
+  document.getElementById('alerts').innerHTML=alerts;
+
+  let html='';
+  ['done','fall','spring','tbd'].forEach(sid=>{
+    const m=SEM_META[sid];
+    const items=COURSES.filter(c=>st[c.id].sem===sid);
+    const cr=COURSES.filter(c=>st[c.id].sem===sid&&!c.noCount).reduce((a,c)=>a+c.cr,0);
+    const badge=sid==='done'
+      ?'<span class="cred-chip chip-neutral">'+cr+' cr</span>'
+      :'<span class="cred-chip '+credClass(cr)+'">'+cr+' cr'+(sid!=='tbd'&&cr<12?' ⚠':'')+'</span>';
+    html+='<div class="sem-group"><div class="sem-header"><div class="sem-title"><div class="sem-dot '+m.dot+'"></div>'+m.lbl+'</div>'+badge+'</div>';
+    html+='<div class="course-list">';
+    if(!items.length) html+='<div class="empty">No courses here yet</div>';
+    items.forEach(c=>{html+=renderCourse(c);});
+    html+='</div></div>';
+  });
+  document.getElementById('checklist').innerHTML=html;
+}
+
+function renderRequirements(){
+  const statusLabel={done:'✓ Done',planned:'📅 Planned',partial:'⚡ Pending',gt:'🎓 At GT'};
+  const statusClass={done:'s-done',planned:'s-planned',partial:'s-partial',gt:'s-gt'};
+  let html='';
+  GT_REQS.forEach((sec,si)=>{
+    const doneCount=sec.rows.filter(r=>r.status==='done'||r.status==='planned').length;
+    const totalCount=sec.rows.filter(r=>r.status!=='gt').length;
+    const allGT=sec.rows.every(r=>r.status==='gt');
+    html+='<div class="req-section">';
+    html+='<div class="req-section-title"><span>'+sec.icon+' '+sec.section+'</span>';
+    if(allGT) html+='<span style="font-size:11px;opacity:.6;">At GT</span>';
+    else html+='<span style="font-size:11px;opacity:.7;">'+doneCount+'/'+totalCount+' done</span>';
+    html+='</div>';
+    if(sec.note) html+='<div style="font-size:11px;padding:6px 12px;background:#f0fbf5;color:var(--green-dark);border:1px solid #c5e8d5;border-bottom:none;font-weight:500;">'+sec.note+'</div>';
+    html+='<div class="req-table">';
+    html+='<div class="req-row header-row"><span>GT Requirement</span><span>Fulfilled by</span><span>Status</span></div>';
+    sec.rows.forEach((r,ri)=>{
+      const rowId='row-'+si+'-'+ri;
+      html+='<div>';
+      html+='<div class="req-row">'
+        +'<div><div class="req-gt">'+r.gt+' <span style="font-size:10px;color:var(--ink4);">'+r.cr+'cr</span></div><div class="req-gt-sub">'+r.gtFull+'</div></div>'
+        +'<div><div class="req-fulfil">'+r.fulfil+'</div>'+(r.fulfSub?'<div class="req-fulfil-sub">'+r.fulfSub+'</div>':'')+'</div>'
+        +'<div><span class="status-pill '+statusClass[r.status]+'">'+statusLabel[r.status]+'</span></div>'
+        +'</div>';
+      if(r.options){
+        html+='<div class="options-toggle" id="optsbtn-'+rowId+'" onclick="toggleOptions(\''+rowId+'\')">▼ See options →</div>';
+        html+='<div class="options-list" id="opts-'+rowId+'">';
+        html+='<div class="options-title">Courses that fulfill this at Oglethorpe</div>';
+        r.options.forEach(o=>{
+          html+='<div class="opt-item"><span><span class="opt-code">'+o.code+'</span> — '+o.name+'</span><span class="opt-cr">'+o.cr+' cr</span></div>';
+        });
+        html+='</div>';
+      }
+      html+='</div>';
+    });
+    html+='</div></div>';
+  });
+  document.getElementById('req-content').innerHTML=html;
+}
+
+function renderHeader(){
+  const fallCr=newCr('fall'),springCr=newCr('spring');
+  const tbdCr=COURSES.filter(c=>st[c.id].sem==='tbd').reduce((a,c)=>a+c.cr,0);
+  const total=fallCr+springCr+tbdCr;
+  document.getElementById('hdr-pills').innerHTML=
+    '<div class="hdr-pill"><strong>'+total+'</strong>/30 new cr</div>'
+    +'<div class="hdr-pill">Fall <strong>'+fallCr+'</strong> cr</div>'
+    +'<div class="hdr-pill">Spring <strong>'+springCr+'</strong> cr</div>'
+    +'<div class="hdr-pill" style="color:rgba(255,255,255,.4);">Orientation Friday 🎓</div>';
+}
+
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showTab(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['checklist','requirements','links'][i]===id));
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+id));
+}
+
+renderChecklist();
+renderRequirements();
+renderHeader();
+</script>
+</body>
+</html>
